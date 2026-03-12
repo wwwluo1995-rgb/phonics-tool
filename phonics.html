@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英语音标·自然拼读·单词点读</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:PingFang SC,Microsoft YaHei,sans-serif}
+body{background:#f4f8fb;padding:15px}
+.title{text-align:center;color:#2d3748;margin:10px 0 20px;font-size:22px}
+.tab-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:15px}
+.tab{padding:12px;border-radius:10px;background:#eef5fb;border:none;font-size:16px;font-weight:500;color:#4a5568;cursor:pointer}
+.tab.active{background:#4299e1;color:#fff}
+.panel{display:none;background:#fff;border-radius:12px;padding:15px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+.panel.active{display:block}
+h3{font-size:16px;color:#2d3748;margin:15px 0 10px;padding-left:5px;border-left:3px solid #4299e1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:15px}
+.item{padding:10px 6px;background:#f7fafc;border-radius:8px;text-align:center;cursor:pointer;font-size:15px;color:#2d3748;border:1px solid #e2e8f0}
+.item:active{background:#4299e1;color:#fff}
+.word-item{padding:10px;background:#f7fafc;border-radius:8px;text-align:center;cursor:pointer;border:1px solid #e2e8f0}
+.word{font-size:16px;font-weight:600}
+.phon{font-size:12px;color:#718096}
+.word-item:active{background:#4299e1;color:#fff}
+.word-item:active .phon{color:#ebf8ff}
+</style>
+</head>
+<body>
+<div class="title">英语音标·自然拼读·单词点读</div>
+<div class="tab-bar">
+<button class="tab active" onclick="show(0)">音标</button>
+<button class="tab" onclick="show(1)">自然拼读</button>
+<button class="tab" onclick="show(2)">单词拼读</button>
+</div>
+
+<div class="panel active" id="p0">
+<h3>元音</h3>
+<div class="grid" id="vowel"></div>
+<h3>辅音</h3>
+<div class="grid" id="consonant"></div>
+</div>
+
+<div class="panel" id="p1">
+<h3>元音组合</h3>
+<div class="grid" id="vcombo"></div>
+<h3>辅音组合</h3>
+<div class="grid" id="ccombo"></div>
+</div>
+
+<div class="panel" id="p2">
+<h3>单音节</h3>
+<div class="grid" id="mono"></div>
+<h3>双音节</h3>
+<div class="grid" id="double"></div>
+<h3>多音节</h3>
+<div class="grid" id="multi"></div>
+</div>
+
+<script>
+// 发音（在线标准发音，直接可用）
+function say(text){let u="https://dict.youdao.com/dictvoice?audio="+encodeURIComponent(text)+"&type=1";new Audio(u).play()}
+
+// 音标
+const vowel=["iː","ɪ","e","æ","ɑː","ɒ","ɔː","ʊ","uː","ɜː","ə","ʌ","eɪ","aɪ","ɔɪ","aʊ","əʊ","ɪə","eə","ʊə"];
+const consonant=["p","b","t","d","k","g","f","v","s","z","θ","ð","ʃ","ʒ","h","m","n","ŋ","l","r","w","j","tʃ","dʒ","tr","dr","ts","dz"];
+// 自然拼读
+const vcombo=["a","e","i","o","u","ai","ay","ea","ee","oa","ow","oi","oy","oo","ou","au","aw","er","ir","ur","ar","or","igh","eau"];
+const ccombo=["sh","ch","th","wh","ph","ck","ng","qu","tr","dr","kn","wr","mb","st","sp","sk"];
+// 单词
+const mono=[{w:"cat",p:"[kæt]"},{w:"bed",p:"[bed]"},{w:"dog",p:"[dɒɡ]"},{w:"cup",p:"[kʌp]"},{w:"book",p:"[bʊk]"},{w:"cake",p:"[keɪk]"},{w:"like",p:"[laɪk]"},{w:"home",p:"[həʊm]"}];
+const double=[{w:"apple",p:"[ˈæpl]"},{w:"banana",p:"[bəˈnɑːnə]"},{w:"family",p:"[ˈfæməli]"},{w:"teacher",p:"[ˈtiːtʃə]"},{w:"mother",p:"[ˈmʌðə]"},{w:"father",p:"[ˈfɑːðə]"},{w:"pencil",p:"[ˈpensl]"},{w:"window",p:"[ˈwɪndəʊ]"}];
+const multi=[{w:"beautiful",p:"[ˈbjuːtɪfl]"},{w:"interesting",p:"[ˈɪntrəstɪŋ]"},{w:"comfortable",p:"[ˈkʌmftəbl]"},{w:"tomorrow",p:"[təˈmɒrəʊ]"},{w:"yesterday",p:"[ˈjestədeɪ]"},{w:"dictionary",p:"[ˈdɪkʃənri]"},{w:"information",p:"[ˌɪnfəˈmeɪʃn]"},{w:"university",p:"[ˌjuːnɪˈvɜːsəti]"}];
+
+// 渲染
+function make(container,list,type){
+let el=document.getElementById(container);
+el.innerHTML="";
+list.forEach(x=>{
+let div=document.createElement("div");
+if(type=="word"){
+div.className="word-item";
+div.innerHTML=`<div class="word">${x.w}</div><div class="phon">${x.p}</div>`;
+div.onclick=()=>say(x.w);
+}else{
+div.className="item";
+div.textContent=x;
+div.onclick=()=>say(x);
+}
+el.appendChild(div);
+})}
+
+// 切换面板
+function show(i){
+document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("active",j==i));
+document.querySelectorAll(".panel").forEach((p,j)=>p.classList.toggle("active",j==i));
+}
+
+make("vowel",vowel);
+make("consonant",consonant);
+make("vcombo",vcombo);
+make("ccombo",ccombo);
+make("mono",mono,"word");
+make("double",double,"word");
+make("multi",multi,"word");
+</script>
+</body>
+</html>
