@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>游泳教练快捷测评系统 V1.0</title>
+  <style>
+    :root {
+      --bg: #f3f7fb;
+      --card: #ffffff;
+      --line: #d9e3ef;
+      --text: #15314b;
+      --muted: #60758b;
+      --primary: #1479d7;
+      --primary-2: #0e64b2;
+      --ok: #1d9b5f;
+      --warn: #e58d16;
+      --danger: #c43f3f;
+      --shadow: 0 8px 24px rgba(18, 53, 86, 0.08);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1.1fr 1fr;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 1.35rem; }
+    h2 { font-size: 1.15rem; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+    h3 { font-size: 1rem; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.92rem; color: var(--muted); }
+    input, select, textarea, button {
+      font: inherit;
+      border-radius: 8px;
+    }
+    input, select, textarea {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 8px 10px;
+      width: 100%;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    .question-list { display: grid; gap: 12px; margin-top: 12px; }
+    .question {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fcfeff;
+    }
+    .question-title { font-weight: 600; margin-bottom: 8px; }
+    .options {
+      display: grid;
+      gap: 6px;
+    }
+    .option-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.92rem;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    button {
+      border: 0;
+      padding: 9px 14px;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: var(--primary-2); }
+    .btn-secondary { background: #73879b; }
+    .btn-print { background: #2e9e67; }
+
+    .message { margin-top: 10px; color: var(--danger); font-size: 0.92rem; min-height: 1.3em; }
+
+    .score-box {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .score {
+      font-size: 2.4rem;
+      color: var(--primary);
+      font-weight: 800;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .report-meta {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      margin-bottom: 10px;
+    }
+    .meta-item {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 0.92rem;
+    }
+
+    .bars { display: grid; gap: 8px; }
+    .bar-row { display: grid; grid-template-columns: 120px 1fr 40px; align-items: center; gap: 8px; }
+    .bar-track { height: 8px; border-radius: 999px; background: #e8eff7; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #5fb3ff, #1479d7); }
+
+    .card-list { display: grid; gap: 8px; margin-top: 8px; }
+    .mini-card { border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: #fbfdff; }
+
+    .sign { margin-top: 14px; display: flex; justify-content: space-between; gap: 12px; font-size: 0.95rem; }
+
+    @media (max-width: 980px) {
+      .page { grid-template-columns: 1fr; }
+      .grid-2, .report-meta { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 95px 1fr 35px; }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 12mm; }
+      body { background: #fff; }
+      .form-panel, .actions, .message { display: none !important; }
+      .page { display: block; padding: 0; max-width: none; }
+      .report-panel { box-shadow: none; border: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="panel form-panel">
+      <h1>游泳教练快捷测评系统</h1>
+      <h2>学员基础信息</h2>
+      <div class="grid-2">
+        <div class="field"><label for="name">学员姓名 *</label><input id="name" placeholder="请输入学员姓名" /></div>
+        <div class="field"><label for="age">年龄</label><input id="age" type="number" min="1" max="99" placeholder="如：8" /></div>
+        <div class="field"><label for="date">测评日期</label><input id="date" type="date" /></div>
+        <div class="field"><label for="coach">测评教练</label><input id="coach" placeholder="教练姓名" /></div>
+        <div class="field"><label for="parentPhone">家长联系方式（可选）</label><input id="parentPhone" placeholder="手机号或微信" /></div>
+        <div class="field"><label for="evalType">测评类型</label>
+          <select id="evalType">
+            <option>体验课测评</option>
+            <option>阶段测评</option>
+            <option>长训测评</option>
+          </select>
+        </div>
+        <div class="field"><label for="baseLevel">当前基础</label>
+          <select id="baseLevel">
+            <option>零基础</option>
+            <option>会一点</option>
+            <option>能游 25 米</option>
+            <option>能游 50 米以上</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 style="margin-top:14px;">固定测评项目（每项必选）</h2>
+      <div id="questionList" class="question-list"></div>
+
+      <div class="actions">
+        <button id="generateBtn">生成报告</button>
+        <button id="resetBtn" class="btn-secondary" type="button">重置</button>
+        <button id="printBtn" class="btn-print" type="button">打印报告</button>
+      </div>
+      <div id="message" class="message"></div>
+    </section>
+
+    <section class="panel report-panel" id="reportArea">
+      <h1>游泳测评报告</h1>
+      <div class="score-box">
+        <div class="score" id="totalScore">--</div>
+        <div id="typeBadge" class="badge" style="background:#8295a8;">待生成</div>
+      </div>
+      <p id="typeDesc">请先完成左侧测评并生成报告。</p>
+
+      <div class="report-meta" id="reportMeta"></div>
+
+      <h3>分项得分</h3>
+      <div id="scoreBars" class="bars"></div>
+
+      <h3 style="margin-top:12px;">主要痛点</h3>
+      <div id="painPoints" class="card-list"></div>
+
+      <h3 style="margin-top:12px;">训练建议</h3>
+      <div id="training" class="mini-card"></div>
+
+      <h3 style="margin-top:12px;">教练评语</h3>
+      <div id="coachComment" class="mini-card"></div>
+
+      <h3 style="margin-top:12px;">家长建议</h3>
+      <div id="parentAdvice" class="mini-card"></div>
+
+      <div class="sign">
+        <div>教练签名：________________</div>
+        <div id="signDate">测评日期：-</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SCORE_OPTIONS = [
+      { score: 0, label: "明显不足" },
+      { score: 5, label: "基础较弱" },
+      { score: 8, label: "基本达标" },
+      { score: 10, label: "表现优秀" }
+    ];
+
+    const EVALUATION_ITEMS = [
+      { key: "A", name: "水性适应", question: "孩子是否敢独立下水，并能在水中保持基本放松？", options: ["明显怕水，不敢独立下水", "可以下水，但紧张明显", "基本放松，可以配合教练", "水感较好，主动性强"] },
+      { key: "B", name: "漂浮能力", question: "孩子是否能在水中完成基本漂浮？", options: ["完全不能漂浮", "需要明显辅助", "可以短时间独立漂浮", "漂浮稳定，身体控制较好"] },
+      { key: "C", name: "换气能力", question: "孩子是否能完成基本呼吸和换气？", options: ["不会憋气 / 换气", "会憋气，但换气不稳定", "能完成基本换气", "换气节奏稳定自然"] },
+      { key: "D", name: "腿部推进", question: "孩子打腿是否有推进力？", options: ["腿部动作混乱，无推进", "能打腿，但推进弱", "有基本推进力", "打腿节奏稳定，推进明显"] },
+      { key: "E", name: "手部动作", question: "孩子手部动作是否规范？", options: ["不会手部动作", "动作方向不稳定", "基本能完成动作", "动作路线清晰，有效率"] },
+      { key: "F", name: "手脚配合", question: "孩子是否能把手、脚、呼吸配合起来？", options: ["完全不能配合", "偶尔能配合，但容易乱", "基本能完成配合", "配合流畅，节奏较好"] },
+      { key: "G", name: "连续游进能力", question: "孩子是否能连续游进一定距离？", options: ["无法连续游进", "能短距离游进，但容易停", "能连续完成 15-25 米", "能稳定完成 25 米以上"] },
+      { key: "H", name: "课堂专注力", question: "孩子课堂中是否能听懂并执行教练指令？", options: ["很难听从指令", "需要多次提醒", "基本能配合课堂", "专注度高，执行力好"] },
+      { key: "I", name: "体能耐力", question: "孩子体能是否能支撑一节课训练？", options: ["明显体能不足", "容易疲劳", "基本能完成课程", "体能较好，适合持续训练"] },
+      { key: "J", name: "协调性", question: "孩子身体协调性和动作学习能力如何？", options: ["协调性较弱，动作学习困难", "学习较慢，需要反复引导", "能理解并模仿动作", "动作学习快，协调性好"] }
+    ];
+
+    const LEVEL_RULES = [
+      { min: 0, max: 39, type: "安全适应型", color: "#c43f3f", desc: "孩子目前主要问题不是泳姿，而是水性、安全感和基础控制能力，需要先建立安全感、放松能力和基本水中适应。", course: "水性适应 / 安全自救基础课", training: ["消除怕水情绪", "建立水中安全感", "学习憋气、漂浮、站立恢复", "培养基本课堂配合"], parent: "建议家长不要急于追求孩子马上学会完整泳姿，现阶段更重要的是建立安全感、水感和基础自救能力。" },
+      { min: 40, max: 59, type: "基础建立型", color: "#e58d16", desc: "孩子已经具备一定水中适应能力，但漂浮、换气、推进或动作配合还不稳定，需要系统建立基础动作框架。", course: "游泳基础提升课", training: ["稳定漂浮和换气", "建立基础腿部推进", "规范基本动作框架", "提升连续游进能力"], parent: "建议家长保持稳定出勤，让孩子通过连续训练建立动作记忆，避免学一下停一下导致动作反复退步。" },
+      { min: 60, max: 79, type: "技术提升型", color: "#1479d7", desc: "孩子已经具备一定游泳基础，可以完成部分动作，但技术细节、动作效率、节奏和稳定性仍需要提升。", course: "泳姿规范提升课 / 长训预备课", training: ["修正技术细节", "提升动作效率", "强化手脚呼吸配合", "增强 25 米以上连续游进稳定性"], parent: "建议家长关注孩子动作质量，而不只是能游多远。现阶段规范动作比单纯完成距离更重要。" },
+      { min: 80, max: 100, type: "长训潜力型", color: "#1d9b5f", desc: "孩子水性、协调性、课堂配合和基础能力较好，具备进一步进入长期训练体系的潜力。", course: "青少年长训班 / 长训队", training: ["建立长期训练习惯", "提升速度、耐力和技术稳定性", "逐步加入阶段测试", "培养比赛意识和训练纪律"], parent: "建议家长为孩子建立长期训练计划，通过规律训练进一步提升技术、体能和比赛能力。" }
+    ];
+
+    const PAIN_TEXT = {
+      "水性适应": "孩子目前在水中放松程度不足，容易紧张，影响后续漂浮、换气和动作学习。",
+      "漂浮能力": "孩子身体控制和水中平衡能力还不稳定，需要加强漂浮、身体放松和核心控制。",
+      "换气能力": "孩子呼吸节奏尚未建立，容易憋气、抬头或打乱动作节奏。",
+      "腿部推进": "孩子腿部动作推进效果不足，可能存在打腿幅度、节奏或发力方向问题。",
+      "手部动作": "孩子手部动作路线不够清晰，容易出现无效划水，需要建立正确动作路径。",
+      "手脚配合": "孩子目前手、脚、呼吸之间的配合还不稳定，需要分解练习后再逐步整合。",
+      "连续游进能力": "孩子连续游进能力不足，说明技术稳定性和体能耐力还需要提升。",
+      "课堂专注力": "孩子课堂执行力和专注度还需要培养，需要更清晰的课堂规则和正向反馈。",
+      "体能耐力": "孩子当前体能储备不足，容易疲劳，需要通过规律训练逐步提升。",
+      "协调性": "孩子动作学习和身体协调能力还需要加强，建议通过重复练习和分解教学改善。"
+    };
+
+    const el = id => document.getElementById(id);
+
+    function initDate() {
+      el("date").value = new Date().toISOString().slice(0, 10);
+    }
+
+    function renderQuestions() {
+      const box = el("questionList");
+      box.innerHTML = EVALUATION_ITEMS.map((item, idx) => `
+        <div class="question">
+          <div class="question-title">${item.key}. ${item.name}</div>
+          <div>${item.question}</div>
+          <div class="options">
+            ${SCORE_OPTIONS.map((opt, i) => `
+              <label class="option-item">
+                <input type="radio" name="q_${idx}" value="${opt.score}" data-item="${item.name}" />
+                <span><strong>${opt.score} 分</strong>：${item.options[i]}</span>
+              </label>
+            `).join("")}
+          </div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll('input[type="radio"]').forEach(r => {
+        r.addEventListener('change', () => tryGenerate(true));
+      });
+    }
+
+    function getScores() {
+      const scores = [];
+      for (let i = 0; i < EVALUATION_ITEMS.length; i++) {
+        const checked = document.querySelector(`input[name="q_${i}"]:checked`);
+        if (!checked) return null;
+        scores.push({ name: EVALUATION_ITEMS[i].name, score: Number(checked.value) });
+      }
+      return scores;
+    }
+
+    function getLevel(total) {
+      return LEVEL_RULES.find(r => total >= r.min && total <= r.max);
+    }
+
+    function getPainPoints(scores) {
+      const sorted = [...scores].sort((a,b) => a.score - b.score);
+      const obvious = sorted.filter(x => x.score <= 5);
+      const picks = (obvious.length > 0 ? obvious.slice(0, 3) : sorted.slice(0, 3));
+      return picks.map(p => ({ name: p.name, text: PAIN_TEXT[p.name] || "该项需要持续提升。", score: p.score }));
+    }
+
+    function buildComment(name, level, scores) {
+      const high = [...scores].sort((a,b) => b.score - a.score).slice(0,2).map(x => x.name).join("、");
+      const low = [...scores].sort((a,b) => a.score - b.score).slice(0,3).map(x => x.name).join("、");
+      return `通过本次测评可以看出，${name || "该学员"}目前属于【${level.type}】。孩子在${high}方面表现较好，但在${low}方面仍需要加强。建议后续通过系统训练，逐步提升水中适应能力、动作稳定性和连续游进能力。`;
+    }
+
+    function validate(showMessage) {
+      if (!el("name").value.trim()) {
+        if (showMessage) el("message").textContent = "请填写学员姓名";
+        return false;
+      }
+      if (!getScores()) {
+        if (showMessage) el("message").textContent = "请完成所有测评项目";
+        return false;
+      }
+      el("message").textContent = "";
+      return true;
+    }
+
+    function renderReport(scores) {
+      const total = scores.reduce((s, x) => s + x.score, 0);
+      const level = getLevel(total);
+      const pains = getPainPoints(scores);
+
+      el("totalScore").textContent = `${total} / 100`;
+      el("typeBadge").textContent = level.type;
+      el("typeBadge").style.background = level.color;
+      el("typeDesc").textContent = level.desc;
+      el("signDate").textContent = `测评日期：${el("date").value || "-"}`;
+
+      el("reportMeta").innerHTML = `
+        <div class="meta-item"><strong>学员姓名：</strong>${el("name").value || "-"}</div>
+        <div class="meta-item"><strong>年龄：</strong>${el("age").value || "-"}</div>
+        <div class="meta-item"><strong>测评教练：</strong>${el("coach").value || "-"}</div>
+        <div class="meta-item"><strong>家长联系方式：</strong>${el("parentPhone").value || "-"}</div>
+        <div class="meta-item"><strong>测评类型：</strong>${el("evalType").value}</div>
+        <div class="meta-item"><strong>当前基础：</strong>${el("baseLevel").value}</div>
+      `;
+
+      el("scoreBars").innerHTML = scores.map(s => `
+        <div class="bar-row">
+          <div>${s.name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.score*10}%"></div></div>
+          <div>${s.score}</div>
+        </div>
+      `).join("");
+
+      el("painPoints").innerHTML = pains.map(p => `<div class="mini-card"><strong>${p.name}（${p.score}分）</strong><br>${p.text}</div>`).join("");
+      el("training").innerHTML = `<strong>推荐课程：</strong>${level.course}<br><strong>训练重点：</strong><ul>${level.training.map(t => `<li>${t}</li>`).join("")}</ul>`;
+      el("coachComment").textContent = buildComment(el("name").value.trim(), level, scores);
+      el("parentAdvice").textContent = level.parent;
+    }
+
+    function tryGenerate(silent = false) {
+      if (!validate(!silent)) return;
+      renderReport(getScores());
+    }
+
+    function resetAll() {
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      ["name", "age", "coach", "parentPhone"].forEach(id => el(id).value = "");
+      el("evalType").selectedIndex = 0;
+      el("baseLevel").selectedIndex = 0;
+      initDate();
+      el("message").textContent = "";
+      el("totalScore").textContent = "--";
+      el("typeBadge").textContent = "待生成";
+      el("typeBadge").style.background = "#8295a8";
+      el("typeDesc").textContent = "请先完成左侧测评并生成报告。";
+      ["reportMeta", "scoreBars", "painPoints", "training", "coachComment", "parentAdvice"].forEach(id => el(id).innerHTML = "");
+      el("signDate").textContent = "测评日期：-";
+    }
+
+    initDate();
+    renderQuestions();
+    el("generateBtn").addEventListener("click", () => tryGenerate(false));
+    el("resetBtn").addEventListener("click", resetAll);
+    el("printBtn").addEventListener("click", () => window.print());
+
+    ["name", "age", "date", "coach", "parentPhone", "evalType", "baseLevel"].forEach(id => {
+      el(id).addEventListener("input", () => tryGenerate(true));
+      el(id).addEventListener("change", () => tryGenerate(true));
+    });
+  </script>
+</body>
+</html>
